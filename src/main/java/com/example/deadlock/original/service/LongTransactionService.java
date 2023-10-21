@@ -1,12 +1,9 @@
 package com.example.deadlock.original.service;
 
-import com.example.deadlock.original.component.DooComponent;
 import com.example.deadlock.original.component.DooHandler;
-import com.example.deadlock.original.component.FooComponent;
 import com.example.deadlock.original.domain.BaseEntity;
 import com.example.deadlock.original.domain.BaseRepository;
 import com.example.deadlock.original.domain.Child;
-import com.example.deadlock.original.domain.ChildRepository;
 import com.example.deadlock.original.domain.Doo;
 import com.example.deadlock.original.domain.Foo;
 import com.example.deadlock.original.domain.FooRepository;
@@ -20,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,14 +24,12 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class LongTransactionService {
 
-    private final ChildRepository childRepository;
-    private final RootRepository rootRepository;
     private final ExternalApi externalApi;
-    private final FooComponent fooComponent;
-    private final DooComponent dooComponent;
     private final DooHandler dooHandler;
-    private final JoRepository joRepository;
     private final ExternalApi2 externalApi2;
+    private final QueryHandler queryHandler;
+    private final RootRepository rootRepository;
+    private final JoRepository joRepository;
     private final FooRepository fooRepository;
     private final BaseRepository baseRepository;
 
@@ -43,20 +37,11 @@ public class LongTransactionService {
     public void execute(final BaseEntity base) {
         if (base.isAlreadyCompleted()) return;
         final String code = base.getCode();
-        final Child child = getChild(code);
-        final RootEntity rootEntity = rootRepository.findById(base.getRootId()).orElseThrow();
-        final List<Foo> fooList = fooComponent.list(base.getFoo());
-        final List<Doo> dooAllList = new ArrayList<>();
-        for (final Foo foo : fooList) {
-            final List<Doo> dooList = dooComponent.list(foo.getId());
-            dooAllList.addAll(dooList);
-        }
-        final List<JoDoo> joDooList = new ArrayList<>();
-        for (final Doo doo : dooAllList) {
-            final Long id = doo.getId();
-            final Jo jo = joRepository.findById(id).orElseThrow(() -> new RuntimeException("not found"));
-            joDooList.add(new JoDoo(jo, doo.getJoData()));
-        }
+        final Child child = queryHandler.getChild(code);
+        final RootEntity rootEntity = queryHandler.getRootEntity(base);
+        final List<Foo> fooList = queryHandler.getFoos(base);
+        final List<Doo> dooAllList = queryHandler.getDoos(fooList);
+        final List<JoDoo> joDooList = queryHandler.getJoDoos(dooAllList);
 
         base.setData(child.getData());
         for (final JoDoo joDoo : joDooList) {
@@ -85,10 +70,6 @@ public class LongTransactionService {
             fooRepository.save(foo);
         }
         baseRepository.save(base);
-    }
-
-    private Child getChild(final String code) {
-        return childRepository.findByCode(code).orElseThrow(() -> new RuntimeException("not found"));
     }
 
     private static final class JoDoo {

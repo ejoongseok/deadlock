@@ -17,6 +17,6 @@ public class BarComponent {
     public void execute(final Foo foo) {
         final List<Doo> dooList = dooComponent.list(foo.getId());
         dooExecutor.doIt(dooList);
-        dooList.forEach(doo -> dooHandler.handle(doo));
+        dooList.forEach(doo -> dooHandler.save(doo));
     }
 }

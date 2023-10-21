@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DooHandler {
-    public void handle(final Doo doo) {
+    public void save(final Doo doo) {
         System.out.println("handle");
     }
 }

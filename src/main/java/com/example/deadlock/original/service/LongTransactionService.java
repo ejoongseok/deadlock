@@ -62,17 +62,18 @@ public class LongTransactionService {
         for (final Doo doo : dooAllList) {
             doo.cool();
         }
-        for (final Doo doo : dooAllList) {
-            dooHandler.handle(doo);
-        }
         for (final Foo foo : fooList) {
             foo.complete();
         }
-        externalApi.call(base, child);
         base.complete();
         rootEntity.complete();
-        rootRepository.save(rootEntity);
+
+        for (final Doo doo : dooAllList) {
+            dooHandler.save(doo);
+        }
+        externalApi.call(base, child);
         externalApi2.call(rootEntity.getId());
+        rootRepository.save(rootEntity);
     }
 
     private Child getChild(final String code) {

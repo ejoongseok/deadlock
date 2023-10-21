@@ -48,6 +48,7 @@ public class LongTransactionService {
 
         externalApi.call(base, child);
         externalApi2.call(rootEntity.getId());
+
         saveHandler.extracted(base, dooAllList, rootEntity, joDooList, fooList);
     }
 

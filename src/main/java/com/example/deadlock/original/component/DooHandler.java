@@ -4,8 +4,8 @@ import com.example.deadlock.original.domain.Doo;
 import org.springframework.stereotype.Component;
 
 @Component
-class DooHandler {
-    public void handle(Doo doo) {
+public class DooHandler {
+    public void handle(final Doo doo) {
         System.out.println("handle");
     }
 }

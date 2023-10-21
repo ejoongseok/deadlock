@@ -2,6 +2,7 @@ package com.example.deadlock.original;
 
 import com.example.deadlock.original.domain.BaseEntity;
 import com.example.deadlock.original.service.LongTransactionService;
+import com.example.deadlock.original.service.LongTransactionService2;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 
@@ -9,8 +10,16 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class HelloController {
     private final LongTransactionService longTransactionService;
+    private final LongTransactionService2 longTransactionService2;
+    private final FeatureFlags featureFlags;
 
     public void hello() {
-        longTransactionService.execute(new BaseEntity());
+        final boolean enable = featureFlags.isEnable("feature-name");
+        if (enable) {
+            longTransactionService.execute(new BaseEntity());
+        } else {
+            longTransactionService2.execute(new BaseEntity());
+        }
+
     }
 }

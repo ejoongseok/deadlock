@@ -10,11 +10,11 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-class DooExecutor {
+public class DooExecutor {
     private final JoRepository joRepository;
 
-    public void doIt(List<Doo> dooList) {
-        for (Doo doo : dooList) {
+    public void doIt(final List<Doo> dooList) {
+        for (final Doo doo : dooList) {
             final Long id = doo.getId();
             final Jo jo = joRepository.findById(id).orElseThrow(() -> new RuntimeException("not found"));
             jo.handle(doo.getJoData());

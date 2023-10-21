@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-class FooComponent {
-    public List<Foo> list(String foo) {
+public class FooComponent {
+    public List<Foo> list(final String foo) {
         return List.of(new Foo());
     }
 }

@@ -4,10 +4,12 @@ import com.example.deadlock.original.component.DooComponent;
 import com.example.deadlock.original.component.DooHandler;
 import com.example.deadlock.original.component.FooComponent;
 import com.example.deadlock.original.domain.BaseEntity;
+import com.example.deadlock.original.domain.BaseRepository;
 import com.example.deadlock.original.domain.Child;
 import com.example.deadlock.original.domain.ChildRepository;
 import com.example.deadlock.original.domain.Doo;
 import com.example.deadlock.original.domain.Foo;
+import com.example.deadlock.original.domain.FooRepository;
 import com.example.deadlock.original.domain.Jo;
 import com.example.deadlock.original.domain.JoRepository;
 import com.example.deadlock.original.domain.RootEntity;
@@ -34,6 +36,8 @@ public class LongTransactionService {
     private final DooHandler dooHandler;
     private final JoRepository joRepository;
     private final ExternalApi2 externalApi2;
+    private final FooRepository fooRepository;
+    private final BaseRepository baseRepository;
 
     @Transactional
     public void execute(final BaseEntity base) {
@@ -68,12 +72,19 @@ public class LongTransactionService {
         base.complete();
         rootEntity.complete();
 
+        externalApi.call(base, child);
+        externalApi2.call(rootEntity.getId());
         for (final Doo doo : dooAllList) {
             dooHandler.save(doo);
         }
-        externalApi.call(base, child);
-        externalApi2.call(rootEntity.getId());
         rootRepository.save(rootEntity);
+        for (final JoDoo joDoo : joDooList) {
+            joRepository.save(joDoo.jo());
+        }
+        for (final Foo foo : fooList) {
+            fooRepository.save(foo);
+        }
+        baseRepository.save(base);
     }
 
     private Child getChild(final String code) {

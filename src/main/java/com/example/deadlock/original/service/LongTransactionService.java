@@ -1,15 +1,21 @@
 package com.example.deadlock.original.service;
 
+import com.example.deadlock.original.component.DooHandler;
 import com.example.deadlock.original.domain.BaseEntity;
+import com.example.deadlock.original.domain.BaseRepository;
 import com.example.deadlock.original.domain.Child;
 import com.example.deadlock.original.domain.Doo;
 import com.example.deadlock.original.domain.Foo;
+import com.example.deadlock.original.domain.FooRepository;
 import com.example.deadlock.original.domain.Jo;
+import com.example.deadlock.original.domain.JoRepository;
 import com.example.deadlock.original.domain.RootEntity;
+import com.example.deadlock.original.domain.RootRepository;
 import com.example.deadlock.original.external.ExternalApi;
 import com.example.deadlock.original.external.ExternalApi2;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,10 +25,15 @@ import java.util.Objects;
 public class LongTransactionService {
 
     private final ExternalApi externalApi;
+    private final DooHandler dooHandler;
     private final ExternalApi2 externalApi2;
     private final QueryHandler queryHandler;
-    private final SaveHandler saveHandler;
+    private final RootRepository rootRepository;
+    private final JoRepository joRepository;
+    private final FooRepository fooRepository;
+    private final BaseRepository baseRepository;
 
+    @Transactional
     public void execute(final BaseEntity base) {
         if (base.isAlreadyCompleted()) return;
         final String code = base.getCode();
@@ -48,14 +59,24 @@ public class LongTransactionService {
 
         externalApi.call(base, child);
         externalApi2.call(rootEntity.getId());
-        saveHandler.extracted(base, dooAllList, rootEntity, joDooList, fooList);
+        for (final Doo doo : dooAllList) {
+            dooHandler.save(doo);
+        }
+        rootRepository.save(rootEntity);
+        for (final JoDoo joDoo : joDooList) {
+            joRepository.save(joDoo.jo());
+        }
+        for (final Foo foo : fooList) {
+            fooRepository.save(foo);
+        }
+        baseRepository.save(base);
     }
 
-    static final class JoDoo {
+    private static final class JoDoo {
         private final Jo jo;
         private final Object joData;
 
-        JoDoo(final Jo jo, final Object joData) {
+        private JoDoo(final Jo jo, final Object joData) {
             this.jo = jo;
             this.joData = joData;
         }
